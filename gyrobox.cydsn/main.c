@@ -1,8 +1,18 @@
-#include <project.h>
+#include "utils.h"
 
-int main()
-{
-    for (;;)
-    {
-    }
+int main() {
+
+  // Enable global interrupts
+  CyGlobalIntEnable;
+
+  // Start USBFS operation with 5V operation
+  USBUART_Start(USBFS_DEVICE, USBUART_5V_OPERATION);
+
+  for (;;) {
+    SerialPrintln("Hello World!");
+
+    CyDelay(1000);
+  }
 }
+
+/* [] END OF FILE */
