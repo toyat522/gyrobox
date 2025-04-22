@@ -1,4 +1,6 @@
-#include "utils.h"
+#include "serial.h"
+
+#include "project.h"
 
 /*
 This function waits until the USB UART is ready, then sends the string
@@ -12,7 +14,7 @@ void SerialPrint(const char *str) {
   }
 
   // Wait until USB component is ready to send data
-  while (0u == USBUART_CDCIsReady()) {
+  while (USBUART_CDCIsReady() == 0) {
   }
 
   // Send the string to the host
@@ -28,7 +30,7 @@ void SerialPrintln(const char *str) {
   SerialPrint(str);
 
   // Wait until USB component is ready to send data
-  while (0u == USBUART_CDCIsReady()) {
+  while (USBUART_CDCIsReady() == 0) {
   }
 
   // Send carriage return line feed (CRLF)
