@@ -2,7 +2,6 @@
 
 #include "config.h"
 #include "project.h"
-#include "serial.h"
 
 /*
 This function retrieves the current temperature in degrees
@@ -26,10 +25,7 @@ float GetTemp() {
 
   // Perform the calculations to retrieve temperature
   uint16_t tempTicks = ((uint16_t)topByte << 8) | (uint16_t)bottomByte;
-  float tempC = -45 + 175 * tempTicks / 65535.0;
-
-  // Return the calculated temperature
-  return tempC;
+  return -45 + 175 * tempTicks / 65535.0;
 }
 
 /* [] END OF FILE */

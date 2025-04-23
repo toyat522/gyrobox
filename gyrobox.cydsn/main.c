@@ -1,9 +1,8 @@
 #include <stdio.h>
 
 #include "config.h"
-#include "project.h"
+#include "device.h"
 #include "serial.h"
-#include "sht40.h"
 
 int main() {
 
@@ -16,14 +15,25 @@ int main() {
   // Start the I2C Master
   I2C_Start();
 
+  // Start ADC conversions
+  PotADC_Start();
+  PotADC_StartConvert();
+
   // Main loop
   for (;;) {
-    SerialPrintln("Hello World!");
-
     float tempC = GetTemp();
-    SerialPrintlnf(tempC);
+    int pot = GetPotentiometer();
 
-    CyDelay(1000);
+    if (IsBtnPressedOnce()) {
+      SerialPrintln("Hello World!");
+      SerialPrint("Temperature: ");
+      SerialPrintlnf(tempC);
+      SerialPrint("Potentiometer: ");
+      SerialPrintlnf(pot);
+    }
+
+    // Update the button press states
+    ControlsUpdate();
   }
 }
 

@@ -12,13 +12,13 @@ to the host without appending any newline characters.
 */
 void SerialPrint(const char *str) {
   // Calculate the length of the string
-  uint16 len = 0;
+  uint16_t len = 0;
   while (str[len] != '\0') {
     len++;
   }
 
   // Wait until USB component is ready to send data
-  while (USBUART_CDCIsReady() == 0) {
+  while (USBUART_CDCIsReady() == 0u) {
   }
 
   // Send the string to the host
@@ -52,7 +52,7 @@ void SerialPrintln(const char *str) {
   SerialPrint(str);
 
   // Wait until USB component is ready to send data
-  while (USBUART_CDCIsReady() == 0) {
+  while (USBUART_CDCIsReady() == 0u) {
   }
 
   // Send carriage return line feed (CRLF)
@@ -69,7 +69,7 @@ void SerialPrintlnf(const float val) {
   SerialPrintf(val);
 
   // Wait until USB component is ready to send data
-  while (USBUART_CDCIsReady() == 0) {
+  while (USBUART_CDCIsReady() == 0u) {
   }
 
   // Send carriage return line feed (CRLF)
