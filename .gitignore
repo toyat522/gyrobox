@@ -22,3 +22,5 @@ Generated_Source
 *.log
 *.zip
 
+### VSCode ###
+.vscode/
