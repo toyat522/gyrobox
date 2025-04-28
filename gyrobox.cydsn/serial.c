@@ -11,6 +11,9 @@ This function waits until USB UART is ready, then sends the string
 to the host without appending any newline characters.
 */
 void SerialPrint(const char *str) {
+  // Don't do anything if serial is not configured
+  if (USBUART_GetConfiguration() == 0) return;
+
   // Calculate the length of the string
   uint16_t len = 0;
   while (str[len] != '\0') {
@@ -29,6 +32,9 @@ void SerialPrint(const char *str) {
 This function sends the provided float to the host.
 */
 void SerialPrintf(const float val) {
+  // Don't do anything if serial is not configured
+  if (USBUART_GetConfiguration() == 0) return;
+
   // Calculate length required to convert float to string
   int len = snprintf(NULL, 0, "%f", val);
 
@@ -48,6 +54,9 @@ This function sends the provided string to the host, followed by
 a carriage return and line feed ("\r\n").
 */
 void SerialPrintln(const char *str) {
+  // Don't do anything if serial is not configured
+  if (USBUART_GetConfiguration() == 0) return;
+
   // Print the string followed by a newline
   SerialPrint(str);
 
@@ -65,6 +74,9 @@ This function sends the provided float to the host, followed by
 a carriage return and line feed ("\r\n").
 */
 void SerialPrintlnf(const float val) {
+  // Don't do anything if serial is not configured
+  if (USBUART_GetConfiguration() == 0) return;
+
   // Print the string followed by a newline
   SerialPrintf(val);
 
