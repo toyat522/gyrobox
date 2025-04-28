@@ -82,11 +82,11 @@ void tftStart(void) {
   CyDelay(10);        // Must wait >5ms after command
   write8_a0(0x36);    // Send memory access control command
   write8_a1(0x88);
-  write8_a0(0x3A); // Send COLMOD: pixel format set command
+  write8_a0(0x3A);    // Send COLMOD: pixel format set command
   write8_a1(0x55);
-  write8_a0(0x11); // Send sleep out command
-  write8_a0(0x29); // Send display on command
-  CyDelay(250);    // Delay to allow all changes to take effect
+  write8_a0(0x11);    // Send sleep out command
+  write8_a0(0x29);    // Send display on command
+  CyDelay(250);       // Delay to allow all changes to take effect
 }
 
 /* [] END OF FILE */

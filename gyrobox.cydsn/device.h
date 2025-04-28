@@ -4,6 +4,7 @@
 #include "project.h"
 
 #include "controls.h"
+#include "mpu.h"
 #include "sht40.h"
 
 #endif // DEVICE_H
