@@ -44,29 +44,31 @@ int main() {
     SerialPrintlnf(pot);
 
     char tempStr[32];
-    snprintf(tempStr, sizeof(tempStr), "Temperature: %.2f", tempC);
+    snprintf(tempStr, sizeof(tempStr),
+             "Temperature: %.2f      ", tempC);
     GUI_DispStringAt(tempStr, 5, 50);
 
     char potStr[32];
-    snprintf(potStr, sizeof(potStr), "Potentiometer: %d", pot);
+    snprintf(potStr, sizeof(potStr),
+             "Potentiometer: %d      ", pot);
     GUI_DispStringAt(potStr, 5, 70);
 
     char gyroStr[32];
-    snprintf(gyroStr, sizeof(gyroStr), "Gyro: (%.2f, %.2f, %.2f)",
-              mpuData.x_gyro, mpuData.y_gyro, mpuData.z_gyro);
+    snprintf(gyroStr, sizeof(gyroStr),
+             "Gyro: (%.2f, %.2f, %.2f)      ",
+             mpuData.x_gyro, mpuData.y_gyro, mpuData.z_gyro);
     GUI_DispStringAt(gyroStr, 5, 90);
 
     char accelStr[32];
-    snprintf(accelStr, sizeof(accelStr), "Accel: (%.2f, %.2f, %.2f)",
-              mpuData.x_accel, mpuData.y_accel, mpuData.z_accel);
+    snprintf(accelStr, sizeof(accelStr),
+             "Accel: (%.2f, %.2f, %.2f)      ",
+             mpuData.x_accel, mpuData.y_accel, mpuData.z_accel);
     GUI_DispStringAt(accelStr, 5, 110);
-
-    GUI_Clear();
 
     // Update the button press states
     ControlsUpdate();
 
-    CyDelay(50);
+    CyDelay(100);
   }
 }
 
