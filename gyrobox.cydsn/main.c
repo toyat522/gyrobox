@@ -42,11 +42,16 @@ int main() {
   //SendWav1();
   StopAudio();
 
+  // Store previous device orientation
+  Orientation_t prevOrientation = BOTTOM;
+
   // Main loop
   for (;;) {
     float tempC = GetTemp();
     int pot = GetPotentiometer();
     MPU_DATA_t mpuData = MPU_Read();
+    ROT_DATA_t rotData = AccelToRot(mpuData);
+    Orientation_t orientation = GetOrientation(mpuData);
 
     SerialPrintln("Hello World!");
     SerialPrint("Temperature: ");
@@ -67,17 +72,53 @@ int main() {
     char gyroStr[32];
     snprintf(gyroStr, sizeof(gyroStr),
              "Gyro: (%.2f, %.2f, %.2f)      ",
-             mpuData.x_gyro, mpuData.y_gyro, mpuData.z_gyro);
+             mpuData.xGyro, mpuData.yGyro, mpuData.zGyro);
     GUI_DispStringAt(gyroStr, 10, 90);
 
     char accelStr[32];
     snprintf(accelStr, sizeof(accelStr),
              "Accel: (%.2f, %.2f, %.2f)      ",
-             mpuData.x_accel, mpuData.y_accel, mpuData.z_accel);
+             mpuData.xAccel, mpuData.yAccel, mpuData.zAccel);
     GUI_DispStringAt(accelStr, 10, 110);
+
+    char rotStr[32];
+    snprintf(rotStr, sizeof(rotStr),
+             "RPY: (%.2f, %.2f, %.2f)      ",
+             rotData.r, rotData.p, rotData.y);
+    GUI_DispStringAt(rotStr, 10, 130);
+
+    char oriStr[32];
+    snprintf(oriStr, sizeof(oriStr),
+             "Orientation: %s      ",
+             OrientationToString(orientation));
+    GUI_DispStringAt(oriStr, 10, 150);
+
+    // If device orientation changed, rotate TFT
+    if (prevOrientation != orientation) {
+      GUI_Clear();
+      switch (orientation) {
+      case TOP:
+        TFT_SetOrientation(3);
+        break;
+      case BOTTOM:
+        TFT_SetOrientation(1);
+        break;
+      case LEFT:
+        TFT_SetOrientation(2);
+        break;
+      case RIGHT:
+        TFT_SetOrientation(0);
+        break;
+      default:
+        TFT_SetOrientation(1);
+      }
+    }
 
     // Update the button press states
     ControlsUpdate();
+
+    // Update the previous state
+    prevOrientation = orientation;
 
     CyDelay(100);
   }

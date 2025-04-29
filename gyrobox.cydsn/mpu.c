@@ -1,5 +1,8 @@
 #include "mpu.h"
 
+#include <math.h>
+#include <stdlib.h>
+
 #include "project.h"
 
 /*
@@ -46,13 +49,13 @@ MPU_DATA_t MPU_Read() {
 
   // Interpret each value and put it into the mpu_data structure
   MPU_DATA_t mpu_data;
-  mpu_data.x_gyro = (int16_t)hold / 131.0;
+  mpu_data.xGyro = (int16_t)hold / 131.0;
 
   hold = ((uint16_t)rawdata[2] << 8) | (uint16_t)rawdata[3];
-  mpu_data.y_gyro = (int16_t)hold / 131.0;
+  mpu_data.yGyro = (int16_t)hold / 131.0;
 
   hold = ((uint16_t)rawdata[4] << 8) | (uint16_t)rawdata[5];
-  mpu_data.z_gyro = (int16_t)hold / 131.0;
+  mpu_data.zGyro = (int16_t)hold / 131.0;
 
   // Send the MPU the accelerometer register address to read from it
   I2C_MasterSendStart(0x68, 0);
@@ -76,13 +79,13 @@ MPU_DATA_t MPU_Read() {
 
   // Interpret each value and put it into the mpu_data structure
   hold = ((uint16_t)rawdata[0] << 8) | (uint16_t)rawdata[1];
-  mpu_data.x_accel = (int16_t)hold / 16384.0;
+  mpu_data.xAccel = (int16_t)hold / 16384.0;
 
   hold = ((uint16_t)rawdata[2] << 8) | (uint16_t)rawdata[3];
-  mpu_data.y_accel = (int16_t)hold / 16384.0;
+  mpu_data.yAccel = (int16_t)hold / 16384.0;
 
   hold = ((uint16_t)rawdata[4] << 8) | (uint16_t)rawdata[5];
-  mpu_data.z_accel = (int16_t)hold / 16384.0;
+  mpu_data.zAccel = (int16_t)hold / 16384.0;
 
   return mpu_data;
 }
@@ -105,4 +108,55 @@ void MPU_ByteWrite(uint8_t reg, uint8_t byte) {
 
   // Send the stop signal to end the transaction
   I2C_MasterSendStop();
+}
+
+/*
+This function converts acceleration data from the MPU to
+device orientation data.
+*/
+ROT_DATA_t AccelToRot(MPU_DATA_t mpuData) {
+  ROT_DATA_t rotData;
+  rotData.r = -atan2(mpuData.yAccel, mpuData.zAccel);
+  rotData.p = atan2(mpuData.xAccel, mpuData.zAccel);
+  rotData.y = atan2(mpuData.yAccel, mpuData.xAccel);
+  return rotData;
+}
+
+/*
+This function uses the device orientation data to determine
+which side of the device is facing down.
+*/
+Orientation_t GetOrientation(MPU_DATA_t mpuData) {
+  // Get the magnitudes of the "gravity" acceleration
+  float absX = fabsf(mpuData.xAccel);
+  float absY = fabsf(mpuData.yAccel);
+  float absZ = fabsf(mpuData.zAccel);
+
+  // Determine orientation using sign/magnitude of largest component
+  if (absX > absY && absX > absZ)
+    return (mpuData.xAccel > 0) ? BACK : FRONT;
+  else if (absY > absX && absY > absZ)
+    return (mpuData.yAccel > 0) ? LEFT : RIGHT;
+  else
+    return (mpuData.zAccel > 0) ? BOTTOM : TOP;
+}
+
+/*
+This function returns the string of the given device orientation enum
+*/
+const char *OrientationToString(Orientation_t orientation) {
+  switch (orientation) {
+  case TOP:
+    return "TOP";
+  case BOTTOM:
+    return "BOTTOM";
+  case LEFT:
+    return "LEFT";
+  case RIGHT:
+    return "RIGHT";
+  case BACK:
+    return "BACK";
+  default:
+    return "FRONT";
+  }
 }
