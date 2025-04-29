@@ -35,6 +35,11 @@ int main() {
   PotADC_Start();
   PotADC_StartConvert();
 
+  // Start audio multiplexer
+  AudioMux_Start();
+
+  //SendWav1();
+
   // Main loop
   for (;;) {
     float tempC = GetTemp();

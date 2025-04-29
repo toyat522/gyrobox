@@ -3,6 +3,7 @@
 
 #include "project.h"
 
+#include "audio.h"
 #include "controls.h"
 #include "mpu.h"
 #include "sht40.h"

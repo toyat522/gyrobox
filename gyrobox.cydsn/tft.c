@@ -106,6 +106,7 @@ void TFT_SetOrientation(int mode) {
     case 3: write8_a1(0xE8); break; // Inverted Landscape
   }
 
+  // Reconfigure emWin to update size of TFT display
   if (mode % 2)
     LCD_SetSizeEx(0, TFT_WIDTH, TFT_HEIGHT);
   else
