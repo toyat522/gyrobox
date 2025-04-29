@@ -35,10 +35,12 @@ int main() {
   PotADC_Start();
   PotADC_StartConvert();
 
-  // Start audio multiplexer
+  // Start audio mux and DACs
   AudioMux_Start();
+  WaveDAC_Start();
 
   //SendWav1();
+  StopAudio();
 
   // Main loop
   for (;;) {

@@ -3,31 +3,34 @@
 #include "project.h"
 
 /*
-This function stops both audio DACs.
+This function shuts down the PAM8302.
 */
 void StopAudio() {
-  WaveDAC_Stop();
-  AudioDAC_Stop();
+  AudioSD_Write(0);
 }
 
 /*
 This function plays waveform1 from the WaveDAC.
 */
 void SendWav1() {
-  // Start and select waveform1 on the WaveDAC
+  // Wake up PAM8302
+  AudioSD_Write(1);
+
+  // Select waveform1 on the WaveDAC
   WaveSelect_Write(0);
   AudioMux_Select(0);
-  WaveDAC_Start();
 }
 
 /*
 This function plays waveform2 from the WaveDAC.
 */
 void SendWav2() {
-  // Start and select waveform2 on the WaveDAC
+  // Wake up PAM8302
+  AudioSD_Write(1);
+
+  // Select waveform2 on the WaveDAC
   WaveSelect_Write(1);
   AudioMux_Select(0);
-  WaveDAC_Start();
 }
 
 /* [] END OF FILE */
