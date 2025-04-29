@@ -1,6 +1,10 @@
 #include "tft.h"
 
+#include "GUI.h"
 #include "project.h"
+
+#define TFT_WIDTH 320
+#define TFT_HEIGHT 320
 
 /*
 This function writes an 8-bit value to the TFT with the
@@ -87,6 +91,25 @@ void tftStart(void) {
   write8_a0(0x11);    // Send sleep out command
   write8_a0(0x29);    // Send display on command
   CyDelay(250);       // Delay to allow all changes to take effect
+}
+
+/*
+This function sets the orientation of the TFT display.
+*/
+void TFT_SetOrientation(int mode) {
+  CS_Select_Write(0); // Lower the chip select for TFT
+  write8_a0(0x36);    // Send memory access control command
+  switch (mode) {
+    case 0: write8_a1(0x48); break; // Portrait
+    case 1: write8_a1(0x28); break; // Landscape
+    case 2: write8_a1(0x88); break; // Inverted Portrait
+    case 3: write8_a1(0xE8); break; // Inverted Landscape
+  }
+
+  if (mode % 2)
+    LCD_SetSizeEx(0, TFT_WIDTH, TFT_HEIGHT);
+  else
+    LCD_SetSizeEx(0, TFT_HEIGHT, TFT_WIDTH);
 }
 
 /* [] END OF FILE */

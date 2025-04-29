@@ -21,6 +21,10 @@ int main() {
 
   // Start the emWin graphic library
   GUI_Init();
+
+  // Set the orientation of the TFT display
+  TFT_SetOrientation(1);
+
   GUI_Clear();
   GUI_SetFont(&GUI_Font8x16);
 
@@ -46,24 +50,24 @@ int main() {
     char tempStr[32];
     snprintf(tempStr, sizeof(tempStr),
              "Temperature: %.2f      ", tempC);
-    GUI_DispStringAt(tempStr, 5, 50);
+    GUI_DispStringAt(tempStr, 10, 50);
 
     char potStr[32];
     snprintf(potStr, sizeof(potStr),
              "Potentiometer: %d      ", pot);
-    GUI_DispStringAt(potStr, 5, 70);
+    GUI_DispStringAt(potStr, 10, 70);
 
     char gyroStr[32];
     snprintf(gyroStr, sizeof(gyroStr),
              "Gyro: (%.2f, %.2f, %.2f)      ",
              mpuData.x_gyro, mpuData.y_gyro, mpuData.z_gyro);
-    GUI_DispStringAt(gyroStr, 5, 90);
+    GUI_DispStringAt(gyroStr, 10, 90);
 
     char accelStr[32];
     snprintf(accelStr, sizeof(accelStr),
              "Accel: (%.2f, %.2f, %.2f)      ",
              mpuData.x_accel, mpuData.y_accel, mpuData.z_accel);
-    GUI_DispStringAt(accelStr, 5, 110);
+    GUI_DispStringAt(accelStr, 10, 110);
 
     // Update the button press states
     ControlsUpdate();

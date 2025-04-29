@@ -9,6 +9,7 @@ void writeM8_a1(uint8 *pData, int N);
 uint8 read8_a1(void);
 void readM8_a1(uint8 *pData, int N);
 void tftStart(void);
+void TFT_SetOrientation(int mode);
 
 #endif // TFT_H
 
