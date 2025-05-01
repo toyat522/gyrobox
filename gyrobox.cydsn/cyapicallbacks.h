@@ -1,19 +1,12 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
 #ifndef CYAPICALLBACKS_H
 #define CYAPICALLBACKS_H
     
-    /*Define your macro callbacks here */
-    /*For more information, refer to the Macro Callbacks topic in the PSoC Creator Help.*/
+void TimerISR_SetMaxCount(int val);
+uint8_t TimerISR_IsCountDone();
+uint8_t TimerISR_IsCountDoneOnce();
+int TimerISR_GetCount();
+void TimerISR_ResetCount();
     
-#endif /* CYAPICALLBACKS_H */   
-/* [] */
+#endif
+
+/* [] END OF FILE */

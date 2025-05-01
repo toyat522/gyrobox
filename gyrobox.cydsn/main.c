@@ -7,6 +7,11 @@
 
 int main() {
 
+  // Initialize the interrupt and timer
+  TimerISR_SetMaxCount(10);
+  TimerISR_Start();
+  Timer_Start();
+
   // Enable global interrupts
   CyGlobalIntEnable;
 
@@ -25,6 +30,7 @@ int main() {
   // Set the orientation of the TFT display
   TFT_SetOrientation(1);
 
+  // Clear the TFT screen
   GUI_Clear();
   GUI_SetFont(&GUI_Font8x16);
 
@@ -39,7 +45,7 @@ int main() {
   AudioMux_Start();
   WaveDAC_Start();
 
-  //SendWav1();
+  // Initially stop audio
   StopAudio();
 
   // Store previous device orientation
@@ -52,46 +58,79 @@ int main() {
     MPU_DATA_t mpuData = MPU_Read();
     ROT_DATA_t rotData = AccelToRot(mpuData);
     Orientation_t orientation = GetOrientation(mpuData);
+    int count = TimerISR_GetCount();
 
-    SerialPrintln("Hello World!");
-    SerialPrint("Temperature: ");
-    SerialPrintlnf(tempC);
-    SerialPrint("Potentiometer: ");
-    SerialPrintlnf(pot);
+    // Clear the screen the first time timer completes
+    if (TimerISR_IsCountDoneOnce()) {
+      GUI_Clear();
 
-    char tempStr[32];
-    snprintf(tempStr, sizeof(tempStr),
-             "Temperature: %.2f      ", tempC);
-    GUI_DispStringAt(tempStr, 10, 50);
+      // Display timer end screen on TFT
+      GUI_SetFont(&GUI_Font8x16);
+      GUI_DispStringAt("Timer completed!", 10, 70);
+      GUI_DispStringAt("Rotate device to stop.", 10, 90);
+    }
 
-    char potStr[32];
-    snprintf(potStr, sizeof(potStr),
-             "Potentiometer: %d      ", pot);
-    GUI_DispStringAt(potStr, 10, 70);
+    if (TimerISR_IsCountDone()) {
 
-    char gyroStr[32];
-    snprintf(gyroStr, sizeof(gyroStr),
-             "Gyro: (%.2f, %.2f, %.2f)      ",
-             mpuData.xGyro, mpuData.yGyro, mpuData.zGyro);
-    GUI_DispStringAt(gyroStr, 10, 90);
+      // Make beeping noise
+      SendWav1();
+      CyDelay(200);
+      StopAudio();
+      CyDelay(100);
+      SendWav1();
+      CyDelay(200);
+      StopAudio();
+      CyDelay(200);
 
-    char accelStr[32];
-    snprintf(accelStr, sizeof(accelStr),
-             "Accel: (%.2f, %.2f, %.2f)      ",
-             mpuData.xAccel, mpuData.yAccel, mpuData.zAccel);
-    GUI_DispStringAt(accelStr, 10, 110);
+    } else {
 
-    char rotStr[32];
-    snprintf(rotStr, sizeof(rotStr),
-             "RPY: (%.2f, %.2f, %.2f)      ",
-             rotData.r, rotData.p, rotData.y);
-    GUI_DispStringAt(rotStr, 10, 130);
+      SerialPrintln("Hello World!");
+      SerialPrint("Temperature: ");
+      SerialPrintlnf(tempC);
+      SerialPrint("Potentiometer: ");
+      SerialPrintlnf(pot);
 
-    char oriStr[32];
-    snprintf(oriStr, sizeof(oriStr),
-             "Orientation: %s      ",
-             OrientationToString(orientation));
-    GUI_DispStringAt(oriStr, 10, 150);
+      char tempStr[32];
+      snprintf(tempStr, sizeof(tempStr),
+              "Temperature: %.2f      ", tempC);
+      GUI_DispStringAt(tempStr, 10, 50);
+
+      char potStr[32];
+      snprintf(potStr, sizeof(potStr),
+              "Potentiometer: %d      ", pot);
+      GUI_DispStringAt(potStr, 10, 70);
+
+      char gyroStr[32];
+      snprintf(gyroStr, sizeof(gyroStr),
+              "Gyro: (%.2f, %.2f, %.2f)      ",
+              mpuData.xGyro, mpuData.yGyro, mpuData.zGyro);
+      GUI_DispStringAt(gyroStr, 10, 90);
+
+      char accelStr[32];
+      snprintf(accelStr, sizeof(accelStr),
+              "Accel: (%.2f, %.2f, %.2f)      ",
+              mpuData.xAccel, mpuData.yAccel, mpuData.zAccel);
+      GUI_DispStringAt(accelStr, 10, 110);
+
+      char rotStr[32];
+      snprintf(rotStr, sizeof(rotStr),
+              "RPY: (%.2f, %.2f, %.2f)      ",
+              rotData.r, rotData.p, rotData.y);
+      GUI_DispStringAt(rotStr, 10, 130);
+
+      char oriStr[32];
+      snprintf(oriStr, sizeof(oriStr),
+              "Orientation: %s      ",
+              OrientationToString(orientation));
+      GUI_DispStringAt(oriStr, 10, 150);
+
+      char countStr[32];
+      snprintf(countStr, sizeof(countStr),
+              "Count: %d      ",
+              count);
+      GUI_DispStringAt(countStr, 10, 170);
+
+    }
 
     // If device orientation changed, rotate TFT
     if (prevOrientation != orientation) {
@@ -112,6 +151,7 @@ int main() {
       default:
         TFT_SetOrientation(1);
       }
+      TimerISR_ResetCount();
     }
 
     // Update the button press states

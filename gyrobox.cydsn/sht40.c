@@ -8,6 +8,9 @@ This function retrieves the current temperature in degrees
 Celcius from the SHT40.
 */
 float GetTemp() {
+  // Prevent interrupt call during I2C communication
+  uint8_t state = CyEnterCriticalSection();
+
   // Select the I2C bus for SHT40
   I2C_BusSelect_Write(1);
 
@@ -22,6 +25,9 @@ float GetTemp() {
   uint8_t topByte = I2C_MasterReadByte(I2C_ACK_DATA);
   uint8_t bottomByte = I2C_MasterReadByte(I2C_NAK_DATA);
   I2C_MasterSendStop();
+
+  // Exit critical section
+  CyExitCriticalSection(state);
 
   // Perform the calculations to retrieve temperature
   uint16_t tempTicks = ((uint16_t)topByte << 8) | (uint16_t)bottomByte;
