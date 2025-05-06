@@ -34,4 +34,18 @@ float GetTemp() {
   return -45 + 175 * tempTicks / 65535.0;
 }
 
+/*
+This function converts degrees F to C.
+*/
+float FahrenheitToCelsius(float f) {
+  return (f - 32) * 5 / 9;
+}
+
+/*
+This function converts degrees C to F.
+*/
+float CelsiusToFahrenheit(float c) {
+  return 1.8 * c + 32;
+}
+
 /* [] END OF FILE */

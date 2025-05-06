@@ -113,4 +113,27 @@ void TFT_SetOrientation(int mode) {
     LCD_SetSizeEx(0, TFT_HEIGHT, TFT_WIDTH);
 }
 
+/*
+This function matches the TFT orientation to the device orientation.
+*/
+void TFT_MatchDeviceOrientation(Orientation_t orientation) {
+  GUI_Clear();
+  switch (orientation) {
+  case TOP:
+    TFT_SetOrientation(3);
+    break;
+  case BOTTOM:
+    TFT_SetOrientation(1);
+    break;
+  case LEFT:
+    TFT_SetOrientation(2);
+    break;
+  case RIGHT:
+    TFT_SetOrientation(0);
+    break;
+  default:
+    TFT_SetOrientation(1);
+  }
+}
+
 /* [] END OF FILE */

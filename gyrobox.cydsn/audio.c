@@ -33,4 +33,18 @@ void SendWav2() {
   AudioMux_Select(0);
 }
 
+/*
+This function sends a "beep" to the speaker.
+*/
+void Beep() {
+  SendWav1();
+  CyDelay(200);
+  StopAudio();
+  CyDelay(100);
+  SendWav1();
+  CyDelay(200);
+  StopAudio();
+  CyDelay(200);
+}
+
 /* [] END OF FILE */

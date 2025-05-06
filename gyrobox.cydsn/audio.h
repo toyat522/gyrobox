@@ -4,6 +4,7 @@
 void StopAudio();
 void SendWav1();
 void SendWav2();
+void Beep();
 
 #endif // AUDIO_H
 

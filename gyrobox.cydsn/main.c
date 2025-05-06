@@ -1,38 +1,62 @@
 #include <stdio.h>
 
+#include "GUI.h"
 #include "config.h"
 #include "device.h"
-#include "GUI.h"
 #include "serial.h"
+#include "utils.h"
+
+// Enum for device states
+typedef enum {
+  TIMER,
+  AUDIO,
+  GAME,
+  TEMP,
+} States_t;
+
+/*
+This function is the loop which runs when the timer finishes countdown.
+*/
+void TimerLoop() {
+  // Display timer end screen on TFT on the first iteration
+  if (TimerISR_IsCountDoneOnce()) {
+    GUI_Clear();
+    GUI_DispStringAt("Timer completed!", 10, 70);
+    GUI_DispStringAt("Press button to stop.", 10, 90);
+  }
+
+  // Make beeping sound
+  Beep();
+
+  // If button pressed, reset timer count and exit of out TimerLoop
+  if (IsBtnPressed()) {
+    TimerISR_StopTimer();
+  }
+
+  // Update the button press states
+  ControlsUpdate();
+}
 
 int main() {
-
-  // Initialize the interrupt and timer
-  TimerISR_SetMaxCount(10);
-  TimerISR_Start();
-  Timer_Start();
-
   // Enable global interrupts
   CyGlobalIntEnable;
 
-  // Start USBFS operation with 5V operation
+  // Initialize timer
+  Timer_Start();
+
+  // Start USBFS operation for serial debugging
   USBUART_Start(USBFS_DEVICE, USBUART_5V_OPERATION);
 
-  // Start the I2C Master
+  // Start the I2C and SPI masters
   I2C_Start();
-
-  // Start the SPI Master
   SPIM_Start();
 
   // Start the emWin graphic library
   GUI_Init();
 
   // Set the orientation of the TFT display
-  TFT_SetOrientation(1);
-
-  // Clear the TFT screen
-  GUI_Clear();
   GUI_SetFont(&GUI_Font8x16);
+  TFT_MatchDeviceOrientation(BOTTOM);
 
   // Start and configure the gyro + accelorometer
   MPU_Init();
@@ -44,123 +68,107 @@ int main() {
   // Start audio mux and DACs
   AudioMux_Start();
   WaveDAC_Start();
-
-  // Initially stop audio
   StopAudio();
 
-  // Store previous device orientation
-  Orientation_t prevOrientation = BOTTOM;
+  // Store device states
+  States_t state = TIMER;
+  States_t prevState = TIMER;
+
+  // Variables used in the different states
+  int timerDigitIdx = 0;
+  int timerValue[] = {0, 0, 0, 0, 0};
+  uint8_t isDisplayC = 0;
 
   // Main loop
   for (;;) {
-    float tempC = GetTemp();
-    int pot = GetPotentiometer();
-    MPU_DATA_t mpuData = MPU_Read();
-    ROT_DATA_t rotData = AccelToRot(mpuData);
-    Orientation_t orientation = GetOrientation(mpuData);
-    int count = TimerISR_GetCount();
 
-    // Clear the screen the first time timer completes
-    if (TimerISR_IsCountDoneOnce()) {
-      GUI_Clear();
-
-      // Display timer end screen on TFT
-      GUI_SetFont(&GUI_Font8x16);
-      GUI_DispStringAt("Timer completed!", 10, 70);
-      GUI_DispStringAt("Rotate device to stop.", 10, 90);
+    // Run the TimerLoop when the timer finishes countdown
+    if (TimerISR_IsCountDone()) {
+      TimerLoop();
+      continue;
     }
 
-    if (TimerISR_IsCountDone()) {
+    // Collect device orientation data
+    MPU_DATA_t mpuData = MPU_Read();
+    Orientation_t orientation = GetOrientation(mpuData);
 
-      // Make beeping noise
-      SendWav1();
-      CyDelay(200);
-      StopAudio();
-      CyDelay(100);
-      SendWav1();
-      CyDelay(200);
-      StopAudio();
-      CyDelay(200);
+    if (orientation == BOTTOM) {
+      // Enable timer mode
+      state = TIMER;
 
-    } else {
+      // Initialize state variables on device flip
+      if (prevState != state) {
+        timerDigitIdx = 0;
+      }
 
-      SerialPrintln("Hello World!");
-      SerialPrint("Temperature: ");
-      SerialPrintlnf(tempC);
-      SerialPrint("Potentiometer: ");
-      SerialPrintlnf(pot);
+      // Increment timer digit on button press
+      if (IsBtnPressedOnce()) {
+        timerDigitIdx++;
 
+        // Once all four digits have been entered, start timer
+        if (timerDigitIdx == 4) {
+          int count = TimerValueToCount(timerValue);
+          if (count == 0) {
+            // If the timer value is 0, restart
+            timerDigitIdx = 0;
+          } else {
+            // Otherwise, start the timer
+            TimerISR_StartTimer(count);
+          }
+        }
+      }
+
+      // Update digit value based on potentiometer
+      timerValue[timerDigitIdx] =
+          timerDigitIdx % 2 ? GetDigit(6) : GetDigit(10);
+
+      // Show timer value on the TFT display
+      char timerStr[32];
+      snprintf(timerStr, sizeof(timerStr), "%d%d:%d%d",
+          timerValue[0], timerValue[1], timerValue[2], timerValue[3]);
+      GUI_DispStringAt(timerStr, 10, 50);
+
+    } else if (orientation == RIGHT) {
+      // Enable temperature display mode
+      state = TEMP;
+
+      // Toggle display units on button press
+      if (IsBtnPressedOnce()) {
+        isDisplayC = !isDisplayC;
+      }
+
+      // Get temperature in celsius and fahrenheit
+      float tempC = GetTemp();
+      float tempF = CelsiusToFahrenheit(tempC);
+
+      // Print result on device screen based on isDisplayC
       char tempStr[32];
-      snprintf(tempStr, sizeof(tempStr),
-              "Temperature: %.2f      ", tempC);
+      if (isDisplayC) {
+        snprintf(tempStr, sizeof(tempStr), "%.0f degrees C    ", tempC);
+      } else {
+        snprintf(tempStr, sizeof(tempStr), "%.0f degrees F    ", tempF);
+      }
       GUI_DispStringAt(tempStr, 10, 50);
 
-      char potStr[32];
-      snprintf(potStr, sizeof(potStr),
-              "Potentiometer: %d      ", pot);
-      GUI_DispStringAt(potStr, 10, 70);
+    } else if (orientation == TOP) {
+      // Enable audio player mode
+      state = AUDIO;
 
-      char gyroStr[32];
-      snprintf(gyroStr, sizeof(gyroStr),
-              "Gyro: (%.2f, %.2f, %.2f)      ",
-              mpuData.xGyro, mpuData.yGyro, mpuData.zGyro);
-      GUI_DispStringAt(gyroStr, 10, 90);
-
-      char accelStr[32];
-      snprintf(accelStr, sizeof(accelStr),
-              "Accel: (%.2f, %.2f, %.2f)      ",
-              mpuData.xAccel, mpuData.yAccel, mpuData.zAccel);
-      GUI_DispStringAt(accelStr, 10, 110);
-
-      char rotStr[32];
-      snprintf(rotStr, sizeof(rotStr),
-              "RPY: (%.2f, %.2f, %.2f)      ",
-              rotData.r, rotData.p, rotData.y);
-      GUI_DispStringAt(rotStr, 10, 130);
-
-      char oriStr[32];
-      snprintf(oriStr, sizeof(oriStr),
-              "Orientation: %s      ",
-              OrientationToString(orientation));
-      GUI_DispStringAt(oriStr, 10, 150);
-
-      char countStr[32];
-      snprintf(countStr, sizeof(countStr),
-              "Count: %d      ",
-              count);
-      GUI_DispStringAt(countStr, 10, 170);
-
+    } else if (orientation == BACK) {
+      // Enable game mode
+      state = GAME;
     }
 
-    // If device orientation changed, rotate TFT
-    if (prevOrientation != orientation) {
-      GUI_Clear();
-      switch (orientation) {
-      case TOP:
-        TFT_SetOrientation(3);
-        break;
-      case BOTTOM:
-        TFT_SetOrientation(1);
-        break;
-      case LEFT:
-        TFT_SetOrientation(2);
-        break;
-      case RIGHT:
-        TFT_SetOrientation(0);
-        break;
-      default:
-        TFT_SetOrientation(1);
-      }
-      TimerISR_ResetCount();
+    // If device state changed, rotate TFT
+    if (prevState != state) {
+      TFT_MatchDeviceOrientation(orientation);
     }
+
+    // Update previous device state
+    prevState = state;
 
     // Update the button press states
     ControlsUpdate();
-
-    // Update the previous state
-    prevOrientation = orientation;
-
-    CyDelay(100);
   }
 }
 

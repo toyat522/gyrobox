@@ -5,7 +5,8 @@
 
 uint8_t IsBtnPressed();
 uint8_t IsBtnPressedOnce();
-int GetPotentiometer();
+uint16_t GetPotentiometer();
+uint8_t GetDigit(int numDigits);
 void ControlsUpdate();
 
 #endif // CONTROLS_H
