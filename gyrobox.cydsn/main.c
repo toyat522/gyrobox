@@ -85,7 +85,15 @@ int main() {
         int timeRemaining = TimerISR_GetMaxCount() - TimerISR_GetCount();
         CountToTimerValue(timerValue, timeRemaining);
 
+        // Stop timer on button press
+        if (IsBtnPressedOnce()) {
+          TimerISR_StopTimer();
+          memset(timerValue, 0, sizeof(timerValue));
+          timerDigitIdx = 0;
+        }
+
       } else {
+
         // Initialize state variables on state change
         if (prevState != state) {
           memset(timerValue, 0, sizeof(timerValue));
@@ -112,7 +120,8 @@ int main() {
         // Update digit value based on potentiometer
         timerValue[timerDigitIdx] =
             timerDigitIdx % 2 ? GetDigit(10) : GetDigit(6);
-      }
+
+      } 
 
       // Show timer value on the TFT display
       GUI_SetFont(&GUI_Font32_1);
@@ -154,6 +163,9 @@ int main() {
         snprintf(tempStr, sizeof(tempStr), "%.0f degrees F    ", tempF);
       }
       GUI_DispStringAt(tempStr, 10, 50);
+
+    } else if (state == AUDIO) {
+
     }
 
     // Update previous device state
