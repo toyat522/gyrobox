@@ -4,8 +4,10 @@
 #include "project.h"
 
 #include "audio.h"
+#include "config.h"
 #include "controls.h"
 #include "mpu.h"
+#include "sfx.h"
 #include "sht40.h"
 #include "tft.h"
 

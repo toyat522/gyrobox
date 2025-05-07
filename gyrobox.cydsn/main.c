@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include "GUI.h"
-#include "config.h"
 #include "device.h"
 #include "serial.h"
 #include "utils.h"
@@ -16,6 +15,9 @@ int main() {
   // Start the I2C and SPI masters
   I2C_Start();
   SPIM_Start();
+
+  // Send startup audio once
+  AudioSampleISR_StartAudio(SFX_RAW, SFX_RAW_LEN, 0);
 
   // Start the emWin graphic library
   GUI_Init();
@@ -32,6 +34,7 @@ int main() {
 
   // Start audio mux and DACs
   AudioMux_Start();
+  AudioDAC_Start();
   WaveDAC_Start();
   StopAudio();
 

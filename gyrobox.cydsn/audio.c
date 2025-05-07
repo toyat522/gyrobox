@@ -10,6 +10,18 @@ void StopAudio() {
 }
 
 /*
+This function sends an audio sample to the VDAC.
+*/
+void SendAudioSample(uint8_t sample) {
+  // Wake up PAM8302
+  AudioSD_Write(1);
+
+  // Select VDAC and set its value
+  AudioDAC_SetValue(sample);
+  AudioMux_Select(1);
+}
+
+/*
 This function plays waveform1 from the WaveDAC.
 */
 void SendWav1() {
