@@ -16,9 +16,6 @@ int main() {
   I2C_Start();
   SPIM_Start();
 
-  // Send startup audio once
-  AudioSampleISR_StartAudio(SFX_RAW, SFX_RAW_LEN, 0);
-
   // Start the emWin graphic library
   GUI_Init();
 
@@ -147,6 +144,8 @@ int main() {
 
     } else if (state == TEMP) {
 
+      SendAudioSample(255);
+
       // Toggle display units on button press
       if (IsBtnPressedOnce()) {
         isDisplayC = !isDisplayC;
@@ -168,6 +167,17 @@ int main() {
       GUI_DispStringAt(tempStr, 10, 50);
 
     } else if (state == AUDIO) {
+
+      // Send startup audio on button press
+      if (IsBtnPressedOnce()) {
+        AudioSampleISR_StartAudio(SFX_RAW, SFX_RAW_LEN, 0);
+      }
+
+      // Print text message
+      GUI_SetFont(&GUI_Font24_1);
+      GUI_DispStringAt("Press button to send audio", 10, 50);
+
+    } else if (state == GAME) {
 
     }
 
