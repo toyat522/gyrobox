@@ -144,8 +144,6 @@ int main() {
 
     } else if (state == TEMP) {
 
-      SendAudioSample(255);
-
       // Toggle display units on button press
       if (IsBtnPressedOnce()) {
         isDisplayC = !isDisplayC;
