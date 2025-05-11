@@ -1,13 +1,41 @@
 #include "audio.h"
 
+#include "FS.h"
 #include "project.h"
+
+
+/*
+This function populates the audionames array with the
+list of audios available and also the number of files.
+*/
+void GetAudioNames(char audionames[MAX_FILES][FILENAME_BUF], int *numFiles) {
+  // Calculate number of files
+  int num = 0;
+
+  // Add a default SFX entry to audionames
+  strcpy(audionames[num++], "default SFX");
+
+  // Iterate through files in the sd card
+  FS_FIND_DATA fd;
+  char acFilename[FILENAME_BUF];
+  if (FS_FindFirstFile(&fd, "", acFilename, sizeof(acFilename)) == 0) {
+    do {
+      // Compute the number of files and add audio file names to array
+      if (!(fd.Attributes & FS_ATTR_DIRECTORY) && num < MAX_FILES) {
+        strcpy(audionames[num++], acFilename);
+      }
+    } while (FS_FindNextFile(&fd));
+  }
+  FS_FindClose(&fd);
+
+  // Update the value at pointer location
+  *numFiles = num;
+}
 
 /*
 This function shuts down the PAM8302.
 */
-void StopAudio() {
-  AudioSD_Write(0);
-}
+void StopAudio() { AudioSD_Write(0); }
 
 /*
 This function sends an audio sample to the VDAC.

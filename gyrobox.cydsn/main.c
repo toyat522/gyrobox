@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "FS.h"
 #include "GUI.h"
 #include "device.h"
 #include "serial.h"
@@ -18,6 +19,10 @@ int main() {
 
   // Start the emWin graphic library
   GUI_Init();
+
+  // Start the emFile library with long file names
+  FS_Init();
+  FS_FAT_SupportLFN();
 
   // Set the orientation of the TFT display
   TFT_MatchDeviceOrientation(BOTTOM);
@@ -42,6 +47,11 @@ int main() {
   int timerDigitIdx = 0;
   int timerValue[] = {0, 0, 0, 0, 0};
   uint8_t isDisplayC = 1;
+  char audionames[MAX_FILES][FILENAME_BUF];
+  int numAudio = 0;
+
+  // Get the list and number audio 
+  GetAudioNames(audionames, &numAudio);
 
   // Main loop
   for (;;) {
@@ -120,8 +130,7 @@ int main() {
         // Update digit value based on potentiometer
         timerValue[timerDigitIdx] =
             timerDigitIdx % 2 ? GetDigit(10) : GetDigit(6);
-
-      } 
+      }
 
       // Show timer value on the TFT display
       GUI_SetFont(&GUI_Font32_1);
@@ -166,17 +175,51 @@ int main() {
 
     } else if (state == AUDIO) {
 
-      // Send startup audio on button press
-      if (IsBtnPressedOnce()) {
-        AudioSampleISR_StartAudio(SFX_RAW, SFX_RAW_LEN, 0);
+      // Diplay all audionames and selected one in red
+      int audioIdx = GetDigit(numAudio);
+      int i;
+      for (i = 0; i < numAudio; i++) {
+        GUI_SetFont(&GUI_Font16_1);
+        GUI_SetColor(i == audioIdx ? GUI_RED : GUI_WHITE);
+        GUI_DispStringAt(audionames[i], 10, 20 + 18 * i);
       }
 
-      // Print text message
-      GUI_SetFont(&GUI_Font24_1);
-      GUI_DispStringAt("Press button to send audio", 10, 50);
+      // Send audio on button press
+      if (IsBtnPressedOnce()) {
+        if (audioIdx == 0) {
+          // If the first audio is selected, play the default SFX
+          AudioSampleISR_StartAudio(SFX_RAW, SFX_RAW_LEN);
+        } else  {
+          // Otherwise, fetch audio data from the SD card
+        }
+
+//        FS_FILE *pFile;
+//        pFile = FS_FOpen(sdFile, "r");
+//        if (pFile) {
+//          while ((bufferLen = FS_Read(pFile, &buffer, BUFFERLEN))) {
+//            for (uint16_t i = 0; i < bufferLen; i++) {
+//              c = buffer[i];
+//              switch (c) {
+//              case '\n':
+//                line[lineIndex] = 0; // null terminate
+//                lineIndex = 0;
+//                break;
+//              case '\r':
+//                break;
+//              default:
+//                line[lineIndex++] = c;
+//                if (lineIndex > LINELEN) {
+//                  line[lineIndex] = 0; // null terminate
+//                  lineIndex = 0;
+//                }
+//              }
+//            }
+//          }
+//          FS_FClose(pFile);
+//        }
+      }
 
     } else if (state == GAME) {
-
     }
 
     // Update previous device state

@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#include "config.h"
+
+void GetAudioNames(char audionames[MAX_FILES][FILENAME_BUF], int *numFiles);
 void StopAudio();
 void SendAudioSample(uint8_t sample);
 void SendWav1();
