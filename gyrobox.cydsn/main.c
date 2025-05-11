@@ -38,7 +38,7 @@ int main() {
   AudioMux_Start();
   AudioDAC_Start();
   WaveDAC_Start();
-  StopAudio();
+  ShutdownAmp();
 
   // Store previous device state
   States_t prevState = TEMP;
@@ -49,6 +49,8 @@ int main() {
   uint8_t isDisplayC = 1;
   char audionames[MAX_FILES][FILENAME_BUF];
   int numAudio = 0;
+  char playing[FILENAME_BUF];
+  uint8_t isAudioPlaying = 0;
 
   // Get the list and number audio 
   GetAudioNames(audionames, &numAudio);
@@ -63,9 +65,10 @@ int main() {
     // Determine the next device state
     States_t state = GetNextState(prevState, orientation);
 
-    // If device state changed, rotate TFT
+    // If device state changed, rotate TFT and stop audio
     if (prevState != state) {
       TFT_MatchDeviceOrientation(orientation);
+      if (isAudioPlaying) StopAudio(playing);
     }
 
     // Run different functions based on the current state
@@ -184,39 +187,24 @@ int main() {
         GUI_DispStringAt(audionames[i], 10, 20 + 18 * i);
       }
 
-      // Send audio on button press
+      // Start or stop audio on button press
       if (IsBtnPressedOnce()) {
-        if (audioIdx == 0) {
-          // If the first audio is selected, play the default SFX
-          AudioSampleISR_StartAudio(SFX_RAW, SFX_RAW_LEN);
-        } else  {
-          // Otherwise, fetch audio data from the SD card
-        }
+        if (isAudioPlaying) {
 
-//        FS_FILE *pFile;
-//        pFile = FS_FOpen(sdFile, "r");
-//        if (pFile) {
-//          while ((bufferLen = FS_Read(pFile, &buffer, BUFFERLEN))) {
-//            for (uint16_t i = 0; i < bufferLen; i++) {
-//              c = buffer[i];
-//              switch (c) {
-//              case '\n':
-//                line[lineIndex] = 0; // null terminate
-//                lineIndex = 0;
-//                break;
-//              case '\r':
-//                break;
-//              default:
-//                line[lineIndex++] = c;
-//                if (lineIndex > LINELEN) {
-//                  line[lineIndex] = 0; // null terminate
-//                  lineIndex = 0;
-//                }
-//              }
-//            }
-//          }
-//          FS_FClose(pFile);
-//        }
+          // If audio was playing, stop playing it
+          StopAudio(playing);
+
+        } else {
+
+          // Start playing music if not previously
+          StartAudio(audionames[audioIdx]);
+
+          // Store the audioname which is playing
+          strcpy(playing, audionames[audioIdx]);
+        }
+        
+        // Toggle flag for audio currently playing or not
+        isAudioPlaying = !isAudioPlaying;
       }
 
     } else if (state == GAME) {
