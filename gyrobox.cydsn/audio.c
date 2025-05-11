@@ -13,13 +13,17 @@ void GetAudioNames(char audionames[MAX_FILES][FILENAME_BUF], int *numFiles) {
   int num = 0;
 
   // Add a default SFX entry to audionames
-  strcpy(audionames[num++], "default SFX");
+  strcpy(audionames[num++], "default_sfx");
 
   // Iterate through files in the sd card
   FS_FIND_DATA fd;
   char acFilename[FILENAME_BUF];
   if (FS_FindFirstFile(&fd, "", acFilename, sizeof(acFilename)) == 0) {
     do {
+      // Truncate the last four characters
+      size_t len = strlen(acFilename);
+      if (len > 4) acFilename[len - 4] = '\0';
+
       // Compute the number of files and add audio file names to array
       if (!(fd.Attributes & FS_ATTR_DIRECTORY) && num < MAX_FILES) {
         strcpy(audionames[num++], acFilename);
