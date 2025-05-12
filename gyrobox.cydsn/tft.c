@@ -1,10 +1,8 @@
 #include "tft.h"
 
+#include "config.h"
 #include "GUI.h"
 #include "project.h"
-
-#define TFT_WIDTH 320
-#define TFT_HEIGHT 320
 
 /*
 This function writes an 8-bit value to the TFT with the
