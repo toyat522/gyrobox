@@ -9,9 +9,6 @@ This function writes an 8-bit value to the TFT with the
 D/C line low.
 */
 void write8_a0(uint8 data) {
-  // Lower the chip select for TFT
-  CS_Select_Write(0);
-
   // Set DC line low and transmit data
   TFT_DC_Write(0x00);
   SPIM_WriteTxData(data);
@@ -26,9 +23,6 @@ This function writes an 8-bit value to the TFT with the
 D/C line high.
 */
 void write8_a1(uint8 data) {
-  // Lower the chip select for TFT
-  CS_Select_Write(0);
-
   // Set DC line high and transmit data
   TFT_DC_Write(0x01);
   SPIM_WriteTxData(data);
@@ -43,9 +37,6 @@ This function writes multiple bytes to the TFT with the
 D/C line high.
 */
 void writeM8_a1(uint8 *pData, int N) {
-  // Lower the chip select for TFT
-  CS_Select_Write(0);
-
   // Set DC line high
   TFT_DC_Write(0x01);
   int i;
@@ -79,7 +70,6 @@ void readM8_a1(uint8 *pData, int N) {
 This function must be called to initialize the TFT.
 */
 void tftStart(void) {
-  CS_Select_Write(0); // Lower the chip select for TFT
   write8_a0(0x01);    // Send software reset command
   CyDelay(10);        // Must wait >5ms after command
   write8_a0(0x36);    // Send memory access control command
@@ -95,7 +85,6 @@ void tftStart(void) {
 This function sets the orientation of the TFT display.
 */
 void TFT_SetOrientation(int mode) {
-  CS_Select_Write(0); // Lower the chip select for TFT
   write8_a0(0x36);    // Send memory access control command
   switch (mode) {
     case 0: write8_a1(0x48); break; // Portrait
