@@ -5,9 +5,12 @@
 /*
 This function determines the state of the device.
 */
-States_t GetNextState(States_t prevState, Orientation_t orientation) {
+States_t GetNextState(States_t prevState, Orientation_t orientation,
+                      uint8_t isGamePlaying) {
   if (TimerISR_IsCountDone())
     return TIMER_DONE;
+  else if (isGamePlaying && prevState == GAME)
+    return GAME;
   else if (orientation == BOTTOM)
     return TEMP;
   else if (orientation == RIGHT)

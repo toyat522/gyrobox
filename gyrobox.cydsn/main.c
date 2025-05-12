@@ -51,8 +51,9 @@ int main() {
   int numAudio = 0;
   char playing[FILENAME_BUF];
   uint8_t isAudioPlaying = 0;
+  uint8_t isGamePlaying = 0;
 
-  // Get the list and number audio 
+  // Get the list and number audio
   GetAudioNames(audionames, &numAudio);
 
   // Main loop
@@ -63,12 +64,13 @@ int main() {
     Orientation_t orientation = GetOrientation(mpuData);
 
     // Determine the next device state
-    States_t state = GetNextState(prevState, orientation);
+    States_t state = GetNextState(prevState, orientation, isGamePlaying);
 
     // If device state changed, rotate TFT and stop audio
     if (prevState != state) {
       TFT_MatchDeviceOrientation(orientation);
-      if (isAudioPlaying) StopAudio(playing);
+      if (isAudioPlaying)
+        StopAudio(playing);
     }
 
     // Run different functions based on the current state
@@ -77,7 +79,7 @@ int main() {
       // Display timer end screen on TFT on the first iteration
       if (TimerISR_IsCountDoneOnce()) {
         GUI_SetFont(&GUI_Font24_1);
-        GUI_SetColor(GUI_WHITE);
+        GUI_SetColor(FG_COLOR);
         GUI_DispStringAt("Timer completed!", 10, 70);
         GUI_DispStringAt("Press button to stop.", 10, 94);
       }
@@ -137,15 +139,15 @@ int main() {
 
       // Show timer value on the TFT display
       GUI_SetFont(&GUI_Font32_1);
-      GUI_SetColor(GUI_WHITE);
+      GUI_SetColor(FG_COLOR);
       GUI_DispStringAt(":", 45, 50);
       int i;
       for (i = 0; i < 4; i++) {
         // Highlight the current digit to modify
         if (timerDigitIdx == i)
-          GUI_SetColor(GUI_RED);
+          GUI_SetColor(SELECT_COLOR);
         else
-          GUI_SetColor(GUI_WHITE);
+          GUI_SetColor(FG_COLOR);
 
         // Display individual digits
         char timerStr[2];
@@ -167,7 +169,7 @@ int main() {
 
       // Print result on device screen based on isDisplayC
       GUI_SetFont(&GUI_Font32_1);
-      GUI_SetColor(GUI_WHITE);
+      GUI_SetColor(FG_COLOR);
       char tempStr[32];
       if (isDisplayC) {
         snprintf(tempStr, sizeof(tempStr), "%.0f degrees C    ", tempC);
@@ -183,7 +185,7 @@ int main() {
       int i;
       for (i = 0; i < numAudio; i++) {
         GUI_SetFont(&GUI_Font16_1);
-        GUI_SetColor(i == audioIdx ? GUI_RED : GUI_WHITE);
+        GUI_SetColor(i == audioIdx ? SELECT_COLOR : FG_COLOR);
         GUI_DispStringAt(audionames[i], 10, 20 + 18 * i);
       }
 
@@ -202,12 +204,33 @@ int main() {
           // Store the audioname which is playing
           strcpy(playing, audionames[audioIdx]);
         }
-        
+
         // Toggle flag for audio currently playing or not
         isAudioPlaying = !isAudioPlaying;
       }
 
     } else if (state == GAME) {
+
+      // Toggle game playing when button pressed
+      if (IsBtnPressedOnce()) {
+        isGamePlaying = !isGamePlaying;
+        GUI_Clear();
+
+        // If game started, initialize game
+        if (isGamePlaying) {
+          InitGame();
+        }
+      }
+
+      if (isGamePlaying) {
+        // If game is playing, enable the game loop
+        GameLoop(mpuData);
+      } else {
+        // If game not playing, prompt user to play
+        GUI_SetFont(&GUI_Font24_1);
+        GUI_SetColor(FG_COLOR);
+        GUI_DispStringAt("Press button to begin game", 10, 70);
+      }
     }
 
     // Update previous device state
@@ -215,6 +238,9 @@ int main() {
 
     // Update the button press states
     ControlsUpdate();
+
+    // Add slight delay between loop
+    CyDelay(LOOP_PERIOD_MS);
   }
 }
 
