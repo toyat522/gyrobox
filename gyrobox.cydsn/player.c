@@ -151,3 +151,5 @@ void DrawPlayer() {
   GUI_SetColor(PLAYER_COLOR);
   GUI_FillCircle(x, y, PLAYER_RADIUS);
 }
+
+/* [] END OF FILE */
